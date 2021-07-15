@@ -1,5 +1,4 @@
-
-
+#%%
 from sklearn import datasets
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,7 +35,8 @@ class LinearRegression:
 
     def fit(self,X, y) :
         learning_rate = 0.001
-        dataloader = Dataloader(X,y,16)
+        dataloader = Dataloader()
+        dataloader = dataloader.divide(X,y,16)
         self.list_mse_epochs = []
         self.list_mse_batches = []
         for i in range(20):
@@ -52,7 +52,7 @@ class LinearRegression:
        
     #def shuffle ():
         
-    def mse(self, y, y_pred):
+    def _mse(self, y, y_pred):
         return np.mean((y-y_pred)**2)
 
     def pred(self, X):
@@ -66,25 +66,7 @@ class LinearRegression:
 model =LinearRegression()
 model.fit(X,y)
 # %%
-plt.plot(range(len(model.list_mse_epochs)), model.list_mse_epochs, color='red')
-#plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
+#plt.plot(range(len(model.list_mse_epochs)), model.list_mse_epochs, color='red')
+plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
 
 # %%
-len(model.list_mse)
-
-# %%#%%
-# %%
-# - from scratch bias-variance trade-off
-#   - update your from scratch linear regression code to use a validation set
-#   - graph both the losses together on the same plot
-#   - do they look as expected?
-#   - can you identify if your model is underfitting or overfitting to the data from these graphs?
-#   - which of these possibilities mean your model is biased or has high variance?
-#   - add early stopping to your linear regression from scratch code
-
-
-# - implement a grid search
-#   - update your from scratch linear regression code to include a grid search over learning rates and batch size
-#   - print the best hyperparameterisations
-#   - initialise a model with them and train it
-#   - save it, yes, your custom model. Does it work in the same way?
