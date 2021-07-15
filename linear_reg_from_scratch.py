@@ -1,4 +1,4 @@
-#%%
+# %%
 from sklearn import datasets
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,18 +33,24 @@ class LinearRegression:
         learning_rate = 0.001
         dataloader = Dataloader()
         dataloader = dataloader.divide(X,y,16)
+        print (dataloader[0][0].shape)
+        print (dataloader[0][1].shape)
+    
         self.list_mse_epochs = []
         self.list_mse_batches = []
-        n=0
+      
         for i in range(20):
-            for x_batches, y_batches in dataloader:
+            
+            for n in range(len(dataloader)):
+                x_batches = dataloader[n][0]
+                y_batches = dataloader[n][1]
                 y_hat = self.pred(x_batches)
                 grad_w = 2 * (y_hat - y_batches) @ x_batches
                 grad_b = 2 * np.mean(y_hat-y_batches)
                 self.w = self.w - learning_rate * grad_w
                 self.b = self.b - learning_rate * grad_b
                 self.list_mse_batches.append(self._mse(y_batches,y_hat))
-                n=n+1
+                #n=n+1
                 print(n, len(x_batches))
             self.list_mse_epochs.append(self._mse(y_batches,y_hat))
             print(self._mse(y_hat,y_batches) , 'epoch', i)
@@ -66,8 +72,7 @@ model.fit(X,y)
 
 #plt.plot(range(len(model.list_mse_epochs)), model.list_mse_epochs, color='red')
 plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
-
-# %%
+#%%
 from sklearn import datasets
 import numpy as np
 import matplotlib.pyplot as plt
@@ -149,3 +154,5 @@ model.fit(X,y)
 
 #plt.plot(range(len(model.list_mse_epochs)), model.list_mse_epochs, color='red')
 plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
+
+# %%
