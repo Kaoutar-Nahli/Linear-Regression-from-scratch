@@ -79,15 +79,16 @@ class LinearRegression:
         self.b = np.random.randn()
         self.list_mse_epochs = []
         self.list_mse_batches = []
-
+        self.idx = []
    
 
     def fit(self,X, y) :
-        learning_rate = 0.001
+        learning_rate = 0.003
         #divide dataset in batches of 16 samples from the dataset
         dataloader = DataLoader(X,y,16)
         self.list_mse_epochs = []
         self.list_mse_batches = []
+        self.idx = []
         n = 0
         for i in range(20):
             for x_batches, y_batches in dataloader:
@@ -107,9 +108,10 @@ class LinearRegression:
                 #calculating and appending loss function for each batch 
                 n+=1
                 self.list_mse_batches.append(self._mse(y_batches_shuffled,y_hat))
-                print(n,i, self._mse(y_hat,y_batches_shuffled))
+                #print(n,i, self._mse(y_hat,y_batches_shuffled))
             #calculating and appending loss function for each epoch
-            self.list_mse_epochs.append(self._mse(y_batches,y_hat))
+            self.list_mse_epochs.append(np.mean(self.list_mse_batches[-32:]))
+            self.idx.append(len(self.list_mse_batches))
             #print(self._mse(y_hat,y_batches) , 'epoch', i)
        
     
@@ -123,22 +125,45 @@ class LinearRegression:
         return X@self.w + self.b
 
 X = normalize_from_scratch(X)
-X_train, X_test, y_train, y_test = split_train_test_from_scratch(X,y,0.2)
 
-model =LinearRegression()
-model.fit(X_train,y_train)
 
-plt.plot(range(len(model.list_mse_epochs)), model.list_mse_epochs, color='red')
-#plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
+# model =LinearRegression()
+# model.fit(X_train,y_train)
+# y_train_pred = model.pred(X_train)
+# train_loss = model._mse(y_train, y_train_pred)
+# y_pred = model.pred(X_test)
+# val_loss = model._mse(y_test, y_pred)
+# plt.plot(model.idx, model.list_mse_epochs, color='red')
+# plt.plot(range(len(model.list_mse_batches)), model.list_mse_batches)
+# print(val_loss, train_loss)
+
+
+
 
 
 
 # %%
-dataloader = DataLoader(X,y,16)
-# for i in dataloader:
-#     print (len (i))
-    # %%
-print(len(dataloader))
-#%%
-shuffle(dataloader)
+def plot_loss_val_vs_train_vs_training_set_size(X,y):
+    val_loss_list = []
+    train_loss_list = []
+    for i in range (20,len(X)):
+        X = X[:i,:]
+        y = y[:i]
+        X_train, X_test, y_train, y_test = split_train_test_from_scratch(X,y,0.2)
+        model =LinearRegression()
+        model.fit(X_train,y_train)
+        y_train_pred = model.pred(X_train)
+        train_loss = model._mse(y_train, y_train_pred)
+        y_pred = model.pred(X_test)
+        val_loss = model._mse(y_test, y_pred)
+        val_loss_list.append(val_loss)
+        train_loss_list.append(train_loss)
+    plt.plot(range(len(val_loss_list)), val_loss_list, color ='red', label = 'val_loss')
+    plt.plot(range(len(train_loss_list)), train_loss_list, color ='blue', label = 'train_loss')
+       
+
+
+plot_loss_val_vs_train_vs_training_set_size(X,y)
+# %%
+
 # %%
