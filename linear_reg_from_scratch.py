@@ -27,11 +27,8 @@ correlation_matrix = boston.corr().round(2)
 sns.heatmap(data=correlation_matrix, annot=True)
 
 plt.figure(figsize=(20, 5))
+#%%
 
-features = ['LSTAT', 'RM']
-target = boston['MEDV']
-X =np.array( pd.DataFrame(np.c_[boston['LSTAT'], boston['RM']], columns = ['LSTAT','RM']))
-Y = np.array(boston['MEDV'])
 
 
 
@@ -39,6 +36,7 @@ Y = np.array(boston['MEDV'])
 
 
 #%%
+X, y = datasets.load_boston(return_X_y=True)
 def normalize_from_scratch(X):
     X_mean = np.mean(X, axis=0)
     X_std = np.std(X, axis=0)
@@ -109,14 +107,16 @@ class LinearRegression:
         self.list_mse_epochs = []
         self.list_mse_batches = []
         self.idx_x_to_plot = []
+        self.list_mse_validation = []
    
 
-    def fit_mini_batches(self,X, y) :
+    def fit_mini_batches(self,X, y, X_val, y_val) :
         learning_rate = 0.003
         #divide dataset in batches of 16 samples from the dataset
         dataloader = DataLoader(X,y,16)
         self.list_mse_epochs = []
         self.list_mse_batches = []
+        self.list_mse_validation = []
         self.idx_x = []
         for i in range(20):
             for x_batches, y_batches in dataloader:
@@ -139,10 +139,17 @@ class LinearRegression:
             #calculating and appending the mean of loss function for each epoch
             self.list_mse_epochs.append(np.mean(self.list_mse_batches[-32:]))
             self.idx_x_to_plot.append(len(self.list_mse_batches))
+            self.list_mse_validation.append(self.loss_validation(X_val,y_val))
             #print(self._mse(y_hat,y_batches) , 'epoch', i)
-    def plot_loss_while_training(self):git
+    def plot_loss_training_loss_validation(self):
         plt.plot(self.idx_x_to_plot, self.list_mse_epochs, color='red')
         plt.plot(range(len(self.list_mse_batches)), self.list_mse_batches)
+        plt.plot(range(len(self.list_mse_validation)), self.list_mse_validation)
+    
+    def loss_validation(self, X_val, y_val):
+        y_pred = X_val@self.w + self.b
+        return self._mse(y_pred,y_val)
+        
 
     
     def fit(self,X,y):
@@ -155,9 +162,7 @@ class LinearRegression:
             #updating parameters 
             self.w = self.w - learning_rate * grad_w
             self.b = self.b - learning_rate * grad_b
-
-
-        
+    
     def _mse(self, y, y_pred):
         return np.mean((y-y_pred)**2)
 
@@ -178,7 +183,22 @@ X = normalize_from_scratch(X)
 # print(val_loss, train_loss)
 
 
+  
+
+#plot for loss from training set should start at zero as with two points the loss should be zero as a line can pass
+#easily throuth two points.
+# the loss in both plots it is close and high so the model is underfitting
+
+# %%
+
+
+# %%
 def plot_loss_val_vs_train_vs_training_set_size(X,y):
+    
+    """
+    behaviour of the loss function while augemnting the size of the samples 
+    
+    """
     val_loss_list = []
     train_loss_list = []
     for i in range (10,len(X)):
@@ -187,7 +207,7 @@ def plot_loss_val_vs_train_vs_training_set_size(X,y):
         y = y[:i]
         X_train, X_test, y_train, y_test = split_train_test_from_scratch(X,y,0.2)
         model =LinearRegression()
-        model.fit(X_train,y_train)
+        model.fit_mini_batches(X_train,y_train)
         y_train_pred = model.pred(X_train)
         train_loss = model._mse(y_train, y_train_pred)
         y_pred = model.pred(X_test)
@@ -196,13 +216,5 @@ def plot_loss_val_vs_train_vs_training_set_size(X,y):
         train_loss_list.append(train_loss)
     plt.plot(range(len(val_loss_list)), val_loss_list, color ='red', label = 'val_loss')
     plt.plot(range(len(train_loss_list)), train_loss_list, color ='blue', label = 'train_loss')
-    return(train_loss_list, val_loss_list)   
-
-#plot fro training set should start at zero as with two points the loss should be zero as a line can pass
-#easily throuth two points.
-# the loss in both plots it is close and high so the model is underfitting
+    return(train_loss_list, val_loss_list) 
 plot_loss_val_vs_train_vs_training_set_size(X,y)
-# %%
-
-
-# %%
