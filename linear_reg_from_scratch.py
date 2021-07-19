@@ -11,6 +11,8 @@ np.random.seed(40)
 from sklearn.datasets import load_boston
 boston_dataset = load_boston()
 X, y = datasets.load_boston(return_X_y=True)
+
+
 #Cleaning and feature engineering
 boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
 boston['MEDV'] = boston_dataset.target
@@ -28,14 +30,7 @@ sns.heatmap(data=correlation_matrix, annot=True)
 
 plt.figure(figsize=(20, 5))
 #%%
-
-
-
-
-
-
-
-#%%
+# Model from scratch
 X, y = datasets.load_boston(return_X_y=True)
 def normalize_from_scratch(X):
     X_mean = np.mean(X, axis=0)
@@ -111,14 +106,14 @@ class LinearRegression:
    
 
     def fit_mini_batches(self,X, y, X_val, y_val) :
-        learning_rate = 0.003
+        learning_rate = 0.001
         #divide dataset in batches of 16 samples from the dataset
         dataloader = DataLoader(X,y,16)
         self.list_mse_epochs = []
         self.list_mse_batches = []
         self.list_mse_validation = []
         self.idx_x = []
-        for i in range(20):
+        for i in range(500):
             for x_batches, y_batches in dataloader:
                 #shuffle batches
                 #print('shapes before shuffling and after dividing in batches', x_batches.shape, y_batches.shape)
@@ -140,21 +135,33 @@ class LinearRegression:
             self.list_mse_epochs.append(np.mean(self.list_mse_batches[-32:]))
             self.idx_x_to_plot.append(len(self.list_mse_batches))
             self.list_mse_validation.append(self.loss_validation(X_val,y_val))
+            if self.early_stopping():
+                break
             #print(self._mse(y_hat,y_batches) , 'epoch', i)
     def plot_loss_training_loss_validation(self):
-        plt.plot(self.idx_x_to_plot, self.list_mse_epochs, color='red')
-        plt.plot(range(len(self.list_mse_batches)), self.list_mse_batches)
-        plt.plot(range(len(self.list_mse_validation)), self.list_mse_validation)
+       # plt.plot(self.idx_x_to_plot, self.list_mse_epochs, color='red')
+        #plt.plot(range(len(self.list_mse_batches)), self.list_mse_batches, color ='blue')
+        plt.plot(range(len(self.list_mse_validation)), self.list_mse_validation, color='green')
     
     def loss_validation(self, X_val, y_val):
         y_pred = X_val@self.w + self.b
         return self._mse(y_pred,y_val)
         
+    def early_stopping(self):
+        """
+        early stopping after 5 iterations
+        """
+        l = len(self.list_mse_validation)
+        if len (self.list_mse_validation)>20:
+            for i in range(5):
+                if self.list_mse_validation[l-i-2]> self.list_mse_validation[l-i-1]:
+                    return (False)
+                return(True)
 
     
     def fit(self,X,y):
-        learning_rate = 0.005
-        for i in range (60):
+        learning_rate = 0.001
+        for i in range (200):
             y_hat = self.pred(X)
             # calculate the partial derivative
             grad_w = 2 * (y_hat - y) @ X
@@ -171,23 +178,15 @@ class LinearRegression:
         return X@self.w + self.b
 
 X = normalize_from_scratch(X)
+X_train, X_test, y_train, y_test = split_train_test_from_scratch(X,y,0.2)
+model =LinearRegression()
+model.fit_mini_batches(X_train,y_train,X_test, y_test)
+model.plot_loss_training_loss_validation()
 
-
-# model =LinearRegression()
-# model.fit(X_train,y_train)
-# y_train_pred = model.pred(X_train)
-# train_loss = model._mse(y_train, y_train_pred)
-# y_pred = model.pred(X_test)
-# val_loss = model._mse(y_test, y_pred)
-# )
-# print(val_loss, train_loss)
 
 
   
 
-#plot for loss from training set should start at zero as with two points the loss should be zero as a line can pass
-#easily throuth two points.
-# the loss in both plots it is close and high so the model is underfitting
 
 # %%
 
@@ -197,7 +196,7 @@ def plot_loss_val_vs_train_vs_training_set_size(X,y):
     
     """
     behaviour of the loss function while augemnting the size of the samples 
-    
+
     """
     val_loss_list = []
     train_loss_list = []
@@ -217,4 +216,8 @@ def plot_loss_val_vs_train_vs_training_set_size(X,y):
     plt.plot(range(len(val_loss_list)), val_loss_list, color ='red', label = 'val_loss')
     plt.plot(range(len(train_loss_list)), train_loss_list, color ='blue', label = 'train_loss')
     return(train_loss_list, val_loss_list) 
+
 plot_loss_val_vs_train_vs_training_set_size(X,y)
+#plot for loss from training set should start at zero as with two points the loss should be zero as a line can pass
+#easily throuth two points.
+# the loss in both plots it is close and high so the model is underfitting
