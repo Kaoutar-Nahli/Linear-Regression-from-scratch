@@ -1,5 +1,6 @@
 
-#%%
+
+
 from sklearn import datasets
 import random
 import numpy as np
@@ -17,9 +18,11 @@ X, y = datasets.load_boston(return_X_y=True)
 boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
 boston['MEDV'] = boston_dataset.target
 boston.head()
-#%%
+
+
 boston.isnull().sum()
-#%%
+
+
 sns.set(rc={'figure.figsize':(11.7,8.27)})
 sns.distplot(boston['MEDV'], bins=30)
 plt.show()
